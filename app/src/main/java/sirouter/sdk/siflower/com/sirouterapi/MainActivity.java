@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Switch;
 import android.widget.Toast;
 
 import com.google.gson.Gson;
@@ -32,6 +33,7 @@ import sirouter.sdk.siflower.com.locallibrary.siwifiApi.param.SetDeviceDataUsage
 import sirouter.sdk.siflower.com.locallibrary.siwifiApi.param.SetDeviceRestrictParam;
 import sirouter.sdk.siflower.com.locallibrary.siwifiApi.param.SetFreqIntergrationParam;
 import sirouter.sdk.siflower.com.locallibrary.siwifiApi.param.SetLeaseNetParam;
+import sirouter.sdk.siflower.com.locallibrary.siwifiApi.param.SetPasswordParam;
 import sirouter.sdk.siflower.com.locallibrary.siwifiApi.param.SetWanTypeParam;
 import sirouter.sdk.siflower.com.locallibrary.siwifiApi.param.SetWiFiAdvanceInfo;
 import sirouter.sdk.siflower.com.locallibrary.siwifiApi.param.WifiParam;
@@ -92,11 +94,14 @@ public class MainActivity extends AppCompatActivity {
 
     private Button setFreqIntergration;
     private Button setDeviceDataUsage;
+    private Switch setFreqIntergration_switch;
     private Button setLeaseNet;
     private Button setWanType;
     private Button setWiFiAdvance;
     private Button setWiFi;
     private Button setAdminPassword;
+    private EditText setOldpwd;
+    private EditText setNewpwd;
     private Button setDeviceRestrict;
     private Button setCustomWiFi;
 
@@ -121,7 +126,9 @@ public class MainActivity extends AppCompatActivity {
         mainActivity = this;
 
         loginExtra = findViewById(R.id.loginExtra);
-        editText = findViewById(R.id.edit_text);
+        editText = findViewById(R.id.editText);
+        setOldpwd = findViewById(R.id.setOldpwd);
+        setNewpwd = findViewById(R.id.setNewpwd);
         bindSiRouter = findViewById(R.id.bindSiRouter);
         unbindSiRouter = findViewById(R.id.unbindSiRouter);
         getWifiObserve = findViewById(R.id.getWifiObserve);
@@ -140,6 +147,7 @@ public class MainActivity extends AppCompatActivity {
         getGatewayIp = findViewById(R.id.getGatewayIp);
 
         setFreqIntergration = findViewById(R.id.setFreqIntergration);
+        setFreqIntergration_switch=findViewById(R.id.setFreqIntergration_switch);
         setDeviceDataUsage = findViewById(R.id.setDeviceDataUsage);
         setLeaseNet = findViewById(R.id.setLeaseNet);
         setWanType = findViewById(R.id.setWanType);
@@ -160,7 +168,7 @@ public class MainActivity extends AppCompatActivity {
                     MainActivity.this.mUser = sfUser;
                     if (sfUser.getBinder() != null) {
                         if (sfUser.getBinder().size() != 0) {
-                            Log.e(TAG, "not zero");
+                            Log.e(TAG, "not zero"+new Gson().toJson(sfUser.getBinder()));
                             routers = sfUser.getBinder().get(0);
                         }
                     }
@@ -177,7 +185,7 @@ public class MainActivity extends AppCompatActivity {
                             Log.e(TAG, "on connection close");
                         }
 
-                        @Override
+                        @Override            
                         public void onFailure(Exception ex) {
                             Log.e(TAG, "on Failure");
                         }
@@ -197,7 +205,7 @@ public class MainActivity extends AppCompatActivity {
                     MainActivity.this.mUser = sfUser;
                     if (sfUser.getBinder() != null) {
                         if (sfUser.getBinder().size() != 0) {
-                            Log.e(TAG, "not zero");
+                            Log.e(TAG, "not zero"+new Gson().toJson(sfUser.getBinder()));
                             routers = sfUser.getBinder().get(0);
                         }
 
@@ -228,6 +236,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
+
         bindSiRouter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -244,6 +253,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(BindRet bindRet) {
                         Log.e(TAG, "bind success ");
+                        Toast.makeText(MainActivity.this, new Gson().toJson(bindRet), Toast.LENGTH_SHORT).show();
                         SiWiFiManager.getInstance().getRouters(mUser, new SiWiFiListListener<Routers>() {
                             @Override
                             public void onSuccess(List<Routers> objlist) {
@@ -759,7 +769,11 @@ public class MainActivity extends AppCompatActivity {
                 }
                 progressDialog.show();
                 SetFreqIntergrationParam param = new SetFreqIntergrationParam("V17");
-                param.setEnable(1);
+                if(setFreqIntergration_switch.isChecked()){
+                    param.setEnable(1);
+                }else {
+                    param.setEnable(0);
+                }
                 Toast.makeText(mainActivity, "开始请求", Toast.LENGTH_SHORT).show();
                 SiWiFiManager.getInstance().setFreqIntergration(routers, mUser, param, new SingleObserver<SetFreqIntergrationRet>() {
                     @Override
@@ -900,6 +914,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         setAdminPassword.setOnClickListener(new View.OnClickListener() {
+            String a,b;
             @Override
             public void onClick(View v) {
                 if (mUser == null) {
@@ -910,7 +925,10 @@ public class MainActivity extends AppCompatActivity {
                     return;
                 }
                 progressDialog.show();
-                SiWiFiManager.getInstance().setAdminPassword(routers, mUser, "12345678", "87654321", new SingleObserver<SetPasswordRet>() {
+                SetPasswordParam param = new SetPasswordParam("V14");
+                param.setOldpwd(setOldpwd.getText().toString());
+                param.setNewpwd(setNewpwd.getText().toString());
+                SiWiFiManager.getInstance().setAdminPassword(routers, mUser, setOldpwd.getText().toString(), setNewpwd.getText().toString(), new SingleObserver<SetPasswordRet>() {
                     @Override
                     public void onSubscribe(Disposable d) {
 
@@ -947,8 +965,8 @@ public class MainActivity extends AppCompatActivity {
                 param.setMac("A0_86_C6_9D_28_7D");
                 param.setSocial(0);
                 param.setVideo(0);
-                param.setGame(0);
-                param.setRestrictenable(1);
+                param.setGame(1);
+                param.setRestrictenable(0);
                 SiWiFiManager.getInstance().setDeviceRestrict(routers, mUser, param).subscribe(new SingleObserver<SetDeviceRestrictRet>() {
                     @Override
                     public void onSubscribe(Disposable d) {
