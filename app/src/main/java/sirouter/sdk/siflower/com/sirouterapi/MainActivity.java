@@ -108,17 +108,19 @@ public class MainActivity extends AppCompatActivity {
 
 
     private static final String TAG = "mainActivity";
-    private String appKey = "3416a75f4cea9109507cacd8e2f2aefc";
-    private String appSecret = "47a581aa79d3113e145a79d4d7449a3e";
+    private int flag;
+    private String appKey = "c20ad4d76fe97759aa27a0c99bff6710";
+    private String appSecret = "864850023f299568b353d21e55c6c892";
     ProgressDialog progressDialog;
 
     public MainActivity() {
+
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        SiWiFiManager.init(this,appKey,appSecret);
+        SiWiFiManager.init(this, appKey, appSecret);
         setContentView(R.layout.activity_main);
         progressDialog = new ProgressDialog(this);
         progressDialog.setTitle("This is ProgressDialog");
@@ -148,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
         getGatewayIp = findViewById(R.id.getGatewayIp);
 
         setFreqIntergration = findViewById(R.id.setFreqIntergration);
-        setFreqIntergration_switch=findViewById(R.id.setFreqIntergration_switch);
+        setFreqIntergration_switch = findViewById(R.id.setFreqIntergration_switch);
         setDeviceDataUsage = findViewById(R.id.setDeviceDataUsage);
         setLeaseNet = findViewById(R.id.setLeaseNet);
         setWanType = findViewById(R.id.setWanType);
@@ -156,20 +158,18 @@ public class MainActivity extends AppCompatActivity {
         setDeviceRestrict = findViewById(R.id.setDeviceRestrict);
         setCustomWiFi = findViewById(R.id.setCustomWiFi);
         setWiFi = findViewById(R.id.setWiFi);
-        setWiFiAdvance =  findViewById(R.id.setWiFiAdvance);
-
+        setWiFiAdvance = findViewById(R.id.setWiFiAdvance);
 
 
         if (mUser != null && !mUser.getLoginkey().equals("")) {
             SFUser.loginByKey(this, mUser.getLoginkey(), new SFObjectResponseListener<SFUser>() {
-
                 @Override
                 public void onSuccess(SFUser sfUser) {
                     Log.e(TAG, "login success" + new Gson().toJson(sfUser));
                     MainActivity.this.mUser = sfUser;
                     if (sfUser.getBinder() != null) {
                         if (sfUser.getBinder().size() != 0) {
-                            Log.e(TAG, "not zero"+new Gson().toJson(sfUser.getBinder()));
+                            Log.e(TAG, "not zero" + new Gson().toJson(sfUser.getBinder()));
                             routers = sfUser.getBinder().get(0);
                         }
                     }
@@ -177,49 +177,15 @@ public class MainActivity extends AppCompatActivity {
                     SiWiFiManager.getInstance().createRemoteConnection(sfUser, new RemoteConnectionListener() {
                         @Override
                         public void onConnectSuccess() {
-
-                            Log.e(TAG, "on connection success");
+                            Log.e(TAG, "on connection success" + Thread.currentThread().getName());
+//                                Toast.makeText(MainActivity.this, "on connection success", Toast.LENGTH_SHORT).show();
                         }
+
 
                         @Override
                         public void onConnectionClose(int code, String reason) {
-                            Log.e(TAG, "on connection close");
-                        }
-
-                        @Override            
-                        public void onFailure(Exception ex) {
-                            Log.e(TAG, "on Failure");
-                        }
-                    });
-                }
-
-                @Override
-                public void onError(SFException ex) {
-                    Log.e(TAG, "登录失败，请检查AppSecret和AppKey");
-                }
-            });
-        } else {
-            SFUser.loginByExtra(this, "999556", new SFObjectResponseListener<SFUser>() {
-                @Override
-                public void onSuccess(SFUser sfUser) {
-                    Log.e(TAG, "login success" + new Gson().toJson(sfUser));
-                    MainActivity.this.mUser = sfUser;
-                    if (sfUser.getBinder() != null) {
-                        if (sfUser.getBinder().size() != 0) {
-                            Log.e(TAG, "not zero"+new Gson().toJson(sfUser.getBinder()));
-                            routers = sfUser.getBinder().get(0);
-                        }
-
-                    }
-                    SiWiFiManager.getInstance().createRemoteConnection(sfUser, new RemoteConnectionListener() {
-                        @Override
-                        public void onConnectSuccess() {
-                            Log.e(TAG, "on connection success");
-                        }
-
-                        @Override
-                        public void onConnectionClose(int code, String reason) {
-                            Log.e(TAG, "on connection close");
+                            Log.e(TAG, "on connection close" + Thread.currentThread().getName());
+                            //  Toast.makeText(MainActivity.this, "on connection close", Toast.LENGTH_SHORT).show();
                         }
 
                         @Override
@@ -242,8 +208,10 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (mUser == null) {
+                    Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
                     return;
                 }
+
 
                 SiWiFiManager.getInstance().bindSiRouter(MainActivity.this, LocalApi.DEFAULT_APP_API_VERSION, mUser, new SingleObserver<BindRet>() {
                     @Override
@@ -284,15 +252,23 @@ public class MainActivity extends AppCompatActivity {
         getWifiObserve.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                } else if (flag == 1) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
+                    return;
+                } else if (flag == 2) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
-                    return;
-                }
-                progressDialog.show();
                 SiWiFiManager.getInstance().getWifiObserve(routers, mUser, new SingleObserver<List<WiFiInfo>>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -320,9 +296,44 @@ public class MainActivity extends AppCompatActivity {
         loginExtra.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String inputText = editText.getText().toString();
-                Toast.makeText(MainActivity.this, inputText, Toast.LENGTH_SHORT).show();
+                SFUser.loginByExtra(mainActivity, editText.getText().toString(), new SFObjectResponseListener<SFUser>() {
+                    @Override
+                    public void onSuccess(SFUser sfUser) {
+                        Log.e(TAG, "login success" + new Gson().toJson(sfUser));
+                        Toast.makeText(MainActivity.this,"登陆成功",Toast.LENGTH_SHORT).show();
+                        MainActivity.this.mUser = sfUser;
+                        if (sfUser.getBinder() != null) {
+                            if (sfUser.getBinder().size() != 0) {
+                                Log.e(TAG, "not zero" + new Gson().toJson(sfUser.getBinder()));
+                                routers = sfUser.getBinder().get(0);
+                            }
+                        }
+                        SiWiFiManager.getInstance().createRemoteConnection(sfUser, new RemoteConnectionListener() {
+                            @Override
+                            public void onConnectSuccess() {
+                                flag = 0;
+                                Log.e(TAG, "on connection success");
+                            }
 
+                            @Override
+                            public void onConnectionClose(int code, String reason) {
+                                flag = 1;
+                                Log.e(TAG, "on connection close");
+                            }
+
+                            @Override
+                            public void onFailure(Exception ex) {
+                                flag = 2;
+                                Log.e(TAG, "on Failure");
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onError(SFException ex) {
+                        Log.e(TAG, "登录失败，请检查AppSecret和AppKey");
+                    }
+                });
             }
         });
 
@@ -330,15 +341,24 @@ public class MainActivity extends AppCompatActivity {
         getCustomWiFiFace.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                } else if (flag == 1) {
+                    progressDialog.show();
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
+                    return;
+                } else if (flag == 2) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
-                    return;
-                }
-                progressDialog.show();
                 SiWiFiManager.getInstance().getCustomWiFiIFace(routers, mUser, new SingleObserver<GetCustomWiFiRet>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -365,14 +385,24 @@ public class MainActivity extends AppCompatActivity {
         getWDSInfo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                } else if (flag == 1) {
+                    progressDialog.show();
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
+                    return;
+                } else if (flag == 2) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
-                    return;
-                }
-                progressDialog.show();
                 SiWiFiManager.getInstance().getWDSInfo(routers, mUser, new SingleObserver<List<WDSInfo>>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -400,14 +430,24 @@ public class MainActivity extends AppCompatActivity {
         getSiRouterDeviceDetail.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        progressDialog.show();
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                } else if (flag == 1) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
+                    return;
+                } else if (flag == 2) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
-                    return;
-                }
-                progressDialog.show();
                 SiWiFiManager.getInstance().getSiRouterDeviceDetail(routers, mUser, SiWiFiManager.a.a, new SingleObserver<List<Device>>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -435,14 +475,23 @@ public class MainActivity extends AppCompatActivity {
         getDeviceDataUsage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                } else if (flag == 1) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
+                    return;
+                } else if (flag == 2) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
-                    return;
-                }
-                progressDialog.show();
                 GetDeviceDataUsageParam param = new GetDeviceDataUsageParam("V10");
                 param.setMac("A0_86_C6_9D_28_7D");
                 SiWiFiManager.getInstance().getDeviceDataUsage(routers, mUser, param, new SingleObserver<GetDeviceDataUsageRet>() {
@@ -471,14 +520,24 @@ public class MainActivity extends AppCompatActivity {
         getLeaseNet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                } else if (flag == 1) {
+                    progressDialog.show();
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
+                    return;
+                } else if (flag == 2) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
-                    return;
-                }
-                progressDialog.show();
                 SiWiFiManager.getInstance().getLeaseNet(routers, mUser, new SingleObserver<GetLeaseNetRet>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -505,14 +564,24 @@ public class MainActivity extends AppCompatActivity {
         getWDSScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                } else if (flag == 1) {
+                    progressDialog.show();
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
+                    return;
+                } else if (flag == 2) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
-                    return;
-                }
-                progressDialog.show();
                 String band = "2.4G";
                 SiWiFiManager.getInstance().getWDSScan(routers, mUser, band, new SingleObserver<List<WDSScanInfo>>() {
                     @Override
@@ -540,14 +609,23 @@ public class MainActivity extends AppCompatActivity {
         getWDSRelIp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                } else if (flag == 1) { ;
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
+                    return;
+                } else if (flag == 2) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
-                    return;
-                }
-                progressDialog.show();
                 String band = "2.4G";
                 SiWiFiManager.getInstance().getWDSRelIp(routers, mUser, band, new SingleObserver<String>() {
                     @Override
@@ -575,14 +653,23 @@ public class MainActivity extends AppCompatActivity {
         getDeviceRestrict.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                } else if (flag == 1) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
+                    return;
+                } else if (flag == 2) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
-                    return;
-                }
-                progressDialog.show();
                 GetDeviceRestrictParam param = new GetDeviceRestrictParam("V10");
                 param.setMac("A0_86_C6_9D_28_7D");
                 SiWiFiManager.getInstance().getDeviceRestrict(routers, mUser, param, new SingleObserver<GetDeviceRestrictRet>() {
@@ -611,14 +698,23 @@ public class MainActivity extends AppCompatActivity {
         getFreqIntergration.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                } else if (flag == 1) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
+                    return;
+                } else if (flag == 2) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
-                    return;
-                }
-                progressDialog.show();
                 GetFreqIntergrationParam param = new GetFreqIntergrationParam("V17");
 
                 SiWiFiManager.getInstance().getFreqIntergration(routers, mUser, param, new SingleObserver<GetFreqIntergrationRet>() {
@@ -647,14 +743,23 @@ public class MainActivity extends AppCompatActivity {
         getRouters.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                } else if (flag == 1) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
+                    return;
+                } else if (flag == 2) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
-                    return;
-                }
-                progressDialog.show();
                 SiWiFiManager.getInstance().getRouters(mUser, new SiWiFiListListener<Routers>() {
                     @Override
                     public void onSuccess(List<Routers> list) {
@@ -666,7 +771,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onError(int i, String s) {
                         progressDialog.dismiss();
-                        Log.d(TAG, " getFreqIntergrationRet" + s);
+                        Log.d(TAG, " getRouters" + s);
                     }
                 });
             }
@@ -676,14 +781,23 @@ public class MainActivity extends AppCompatActivity {
         getWanTypeObserve.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                } else if (flag == 1) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
+                    return;
+                } else if (flag == 2) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
-                    return;
-                }
-                progressDialog.show();
                 SiWiFiManager.getInstance().getWanTypeObserve(routers, mUser, new SingleObserver<GetWanTypeRet>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -710,14 +824,23 @@ public class MainActivity extends AppCompatActivity {
         getWiFiAdvanceObserve.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                } else if (flag == 1) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
+                    return;
+                } else if (flag == 2) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
-                    return;
-                }
-                progressDialog.show();
                 SiWiFiManager.getInstance().getWifiAdvanceObserve(routers, mUser, new SingleObserver<List<WiFiAdvanceInfo>>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -746,10 +869,11 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (mUser == null) {
+                    Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
                 if (routers == null) {
+                    Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
                     return;
                 }
                 Log.d(TAG, "getGateWayIp" + (SiWiFiManager.getInstance().getGatewayIp(mainActivity)));
@@ -758,21 +882,32 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
+
         setFreqIntergration.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                }else if (flag == 1) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
+                else if (flag == 2){
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                progressDialog.show();
                 SetFreqIntergrationParam param = new SetFreqIntergrationParam("V17");
-                if(setFreqIntergration_switch.isChecked()){
+                if (setFreqIntergration_switch.isChecked()) {
                     param.setEnable(1);
-                }else {
+                } else {
                     param.setEnable(0);
                 }
                 Toast.makeText(mainActivity, "开始请求", Toast.LENGTH_SHORT).show();
@@ -800,14 +935,24 @@ public class MainActivity extends AppCompatActivity {
         setDeviceDataUsage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                }else if (flag == 1) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
+                else if (flag == 2){
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                progressDialog.show();
                 SetDeviceDataUsageParam param = new SetDeviceDataUsageParam("V14");
                 param.setMac("A0_86_C6_9D_28_7D");
                 List<DataUsage> list = new ArrayList<DataUsage>();
@@ -819,7 +964,7 @@ public class MainActivity extends AppCompatActivity {
                 param.setSetlist(list);
                 param.setChange(100);
                 param.setUsageenable(1);
-                SiWiFiManager.getInstance().setDeviceDataUsage(routers,mUser,param).subscribe(new SingleObserver<SetDeviceDataUsageRet>() {
+                SiWiFiManager.getInstance().setDeviceDataUsage(routers, mUser, param).subscribe(new SingleObserver<SetDeviceDataUsageRet>() {
                     @Override
                     public void onSubscribe(Disposable d) {
 
@@ -841,18 +986,27 @@ public class MainActivity extends AppCompatActivity {
         });
 
 
-
         setLeaseNet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                }else if (flag == 1) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
+                else if (flag == 2){
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                progressDialog.show();
                 SetLeaseNetParam param = new SetLeaseNetParam("V14");
                 param.setEnable(true);
                 param.setSsid("liuxiaopeng-5G");
@@ -882,14 +1036,24 @@ public class MainActivity extends AppCompatActivity {
         setWanType.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                }else if (flag == 1) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
+                else if (flag == 2){
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                progressDialog.show();
                 SetWanTypeParam param = new SetWanTypeParam("V14");
                 param.setType(0);
                 SiWiFiManager.getInstance().setWanType(routers, mUser, param, new SingleObserver<SetWanTypeRet>() {
@@ -915,17 +1079,27 @@ public class MainActivity extends AppCompatActivity {
 
 
         setAdminPassword.setOnClickListener(new View.OnClickListener() {
-            String a,b;
+
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                }else if (flag == 1) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
+                else if (flag == 2){
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                progressDialog.show();
                 SetPasswordParam param = new SetPasswordParam("V14");
                 param.setOldpwd(setOldpwd.getText().toString());
                 param.setNewpwd(setNewpwd.getText().toString());
@@ -954,14 +1128,24 @@ public class MainActivity extends AppCompatActivity {
         setDeviceRestrict.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                }else if (flag == 1) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
+                else if (flag == 2){
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                progressDialog.show();
                 SetDeviceRestrictParam param = new SetDeviceRestrictParam("V14");
                 param.setMac("A0_86_C6_9D_28_7D");
                 param.setSocial(0);
@@ -993,14 +1177,24 @@ public class MainActivity extends AppCompatActivity {
         setCustomWiFi.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                }else if (flag == 1) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
+                else if (flag == 2){
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                progressDialog.show();
                 SetCustomWiFiParam param = new SetCustomWiFiParam("V14");
                 List<IFace> list = new ArrayList<IFace>();
                 IFace iFace = new IFace();
@@ -1043,15 +1237,25 @@ public class MainActivity extends AppCompatActivity {
         setWiFi.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                }else if (flag == 1) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
+                else if (flag == 2){
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                progressDialog.show();
-                List<WifiParam>list = new ArrayList<WifiParam>();
+                List<WifiParam> list = new ArrayList<WifiParam>();
                 WifiParam wifiParam = new WifiParam();
                 wifiParam.enable = 1;
                 wifiParam.encryption = "psk2+ccmp";
@@ -1086,15 +1290,25 @@ public class MainActivity extends AppCompatActivity {
         setWiFiAdvance.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                }else if (flag == 1) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
-                if (routers == null) {
+                else if (flag == 2){
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                progressDialog.show();;
-                List<SetWiFiAdvanceInfo>list = new ArrayList<SetWiFiAdvanceInfo>();
+                List<SetWiFiAdvanceInfo> list = new ArrayList<SetWiFiAdvanceInfo>();
 
                 SetWiFiAdvanceInfo param24 = new SetWiFiAdvanceInfo();
                 param24.country = "CN";
@@ -1142,15 +1356,24 @@ public class MainActivity extends AppCompatActivity {
         unbindSiRouter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (mUser == null) {
+                if (flag == 0) {
+                    if (mUser == null) {
+                        Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    if (routers == null) {
+                        Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
+                    progressDialog.show();
+                }else if (flag == 1) {
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
-
                 }
-
-                if (routers == null) {
+                else if (flag == 2){
+                    Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                progressDialog.show();
                 SiWiFiManager.getInstance().unbindSiRouter(routers, mUser, new SingleObserver<UnbindRet>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -1173,4 +1396,5 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 }
+
 
