@@ -293,7 +293,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(List<WiFiInfo> wiFiInfos) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "wifiinfos: " + new Gson().toJson(wiFiInfos));
+                        Log.e(TAG, "wifiinfos: " + new Gson().toJson(wiFiInfos));
                         Toast.makeText(MainActivity.this, new Gson().toJson(wiFiInfos), Toast.LENGTH_SHORT).show();
 
                     }
@@ -301,7 +301,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onError(Throwable e) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "wifiinfos: " + e.getMessage());
+                        Log.e(TAG, "wifiinfos: " + e.getMessage());
                     }
                 });
             }
@@ -367,14 +367,14 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(GetCustomWiFiRet getCustomWiFiRet) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "getCustomWiFiRet" + new Gson().toJson(getCustomWiFiRet));
+                        Log.e(TAG, "getCustomWiFiRet" + new Gson().toJson(getCustomWiFiRet));
                         Toast.makeText(MainActivity.this, new Gson().toJson(getCustomWiFiRet), Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onError(Throwable e) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "getCustomWiFiRet" + e.getMessage());
+                        Log.e(TAG, "getCustomWiFiRet" + e.getMessage());
                     }
                 });
             }
@@ -395,7 +395,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(List<WDSInfo> wdsInfos) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "wdsinfos: " + new Gson().toJson(wdsInfos));
+                        Log.e(TAG, "wdsinfos: " + new Gson().toJson(wdsInfos));
                         Toast.makeText(MainActivity.this, new Gson().toJson(wdsInfos), Toast.LENGTH_SHORT).show();
 
                     }
@@ -403,7 +403,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onError(Throwable e) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "wdsinfos: " + e.getMessage());
+                        Log.e(TAG, "wdsinfos: " + e.getMessage());
                     }
                 });
             }
@@ -424,7 +424,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(List<Device> devices) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "devices: " + new Gson().toJson(devices));
+                        Log.e(TAG, "devices: " + new Gson().toJson(devices));
                         Toast.makeText(MainActivity.this, new Gson().toJson(devices), Toast.LENGTH_SHORT).show();
 
                     }
@@ -432,7 +432,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onError(Throwable e) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "devices: " + e.getMessage());
+                        Log.e(TAG, "devices: " + e.getMessage());
                     }
                 });
             }
@@ -455,14 +455,14 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(GetDeviceDataUsageRet getDeviceDataUsageRet) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "getDeviceDataUsageRet" + new Gson().toJson(getDeviceDataUsageRet));
+                        Log.e(TAG, "getDeviceDataUsageRet" + new Gson().toJson(getDeviceDataUsageRet));
                         Toast.makeText(MainActivity.this, new Gson().toJson(getDeviceDataUsageRet), Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onError(Throwable e) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "getDeviceDataUsageRet" + e.getMessage());
+                        Log.e(TAG, "getDeviceDataUsageRet" + e.getMessage());
                     }
                 });
             }
@@ -483,14 +483,14 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(GetLeaseNetRet getLeaseNetRet) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "getLeaseNet" + new Gson().toJson(getLeaseNetRet));
+                        Log.e(TAG, "getLeaseNet" + new Gson().toJson(getLeaseNetRet));
                         Toast.makeText(MainActivity.this, new Gson().toJson(getLeaseNetRet), Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onError(Throwable e) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "getLeaseNet" + e.getMessage());
+                        Log.e(TAG, "getLeaseNet" + e.getMessage());
                     }
                 });
             }
@@ -512,14 +512,14 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(List<WDSScanInfo> wdsScanInfos) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "wdsScanInfos: " + new Gson().toJson(wdsScanInfos));
+                        Log.e(TAG, "wdsScanInfos: " + new Gson().toJson(wdsScanInfos));
                         Toast.makeText(MainActivity.this, new Gson().toJson(wdsScanInfos), Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onError(Throwable e) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "wdsScanInfos: " + e.getMessage());
+                        Log.e(TAG, "wdsScanInfos: " + e.getMessage());
                     }
                 });
             }
@@ -541,14 +541,14 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(String s) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "s: " + new Gson().toJson(s));
+                        Log.e(TAG, "s: " + new Gson().toJson(s));
                         Toast.makeText(MainActivity.this, new Gson().toJson(s), Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onError(Throwable e) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "s: " + e.getMessage());
+                        Log.e(TAG, "s: " + e.getMessage());
                     }
                 });
             }
@@ -571,14 +571,14 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(GetDeviceRestrictRet getDeviceRestrictRet) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "getDeviceRestrictRet" + new Gson().toJson(getDeviceRestrictRet));
+                        Log.e(TAG, "getDeviceRestrictRet" + new Gson().toJson(getDeviceRestrictRet));
                         Toast.makeText(MainActivity.this, new Gson().toJson(getDeviceRestrictRet), Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onError(Throwable e) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "getDeviceRestrictRet" + e.getMessage());
+                        Log.e(TAG, "getDeviceRestrictRet" + e.getMessage());
                     }
                 });
             }
@@ -601,14 +601,14 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(GetFreqIntergrationRet getFreqIntergrationRet) {
                         progressDialog.dismiss();
-                        Log.d(TAG, " getFreqIntergrationRet" + new Gson().toJson(getFreqIntergrationRet));
+                        Log.e(TAG, " getFreqIntergrationRet" + new Gson().toJson(getFreqIntergrationRet));
                         Toast.makeText(MainActivity.this, new Gson().toJson(getFreqIntergrationRet), Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onError(Throwable e) {
                         progressDialog.dismiss();
-                        Log.d(TAG, " getFreqIntergrationRet" + e.getMessage());
+                        Log.e(TAG, " getFreqIntergrationRet" + e.getMessage());
                     }
                 });
             }
@@ -624,14 +624,14 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(List<Routers> list) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "  getRouters" + new Gson().toJson(list));
+                        Log.e(TAG, "  getRouters" + new Gson().toJson(list));
                         Toast.makeText(MainActivity.this, new Gson().toJson(list), Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onError(int i, String s) {
                         progressDialog.dismiss();
-                        Log.d(TAG, " getRouters" + s);
+                        Log.e(TAG, " getRouters" + s);
                     }
                 });
             }
@@ -652,14 +652,14 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(GetWanTypeRet getWanTypeRet) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "getWanTypeRet)" + new Gson().toJson(getWanTypeRet));
+                        Log.e(TAG, "getWanTypeRet)" + new Gson().toJson(getWanTypeRet));
                         Toast.makeText(MainActivity.this, new Gson().toJson(getWanTypeRet), Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onError(Throwable e) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "getWanTypeRet)" + e.getMessage());
+                        Log.e(TAG, "getWanTypeRet)" + e.getMessage());
                     }
                 });
             }
@@ -680,7 +680,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onSuccess(List<WiFiAdvanceInfo> wiFiAdvanceInfos) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "wiFiAdvanceInfos: " + new Gson().toJson(wiFiAdvanceInfos));
+                        Log.e(TAG, "wiFiAdvanceInfos: " + new Gson().toJson(wiFiAdvanceInfos));
                         Toast.makeText(MainActivity.this, new Gson().toJson(wiFiAdvanceInfos), Toast.LENGTH_SHORT).show();
 
                     }
@@ -688,7 +688,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void onError(Throwable e) {
                         progressDialog.dismiss();
-                        Log.d(TAG, "wiFiAdvanceInfos: " + e.getMessage());
+                        Log.e(TAG, "wiFiAdvanceInfos: " + e.getMessage());
                     }
                 });
             }
@@ -706,7 +706,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
                     return;
                 }
-                Log.d(TAG, "getGateWayIp" + (SiWiFiManager.getInstance().getGatewayIp(mainActivity)));
+                Log.e(TAG, "getGateWayIp" + (SiWiFiManager.getInstance().getGatewayIp(mainActivity)));
                 Toast.makeText(MainActivity.this, new Gson().toJson((SiWiFiManager.getInstance().getGatewayIp(mainActivity))), Toast.LENGTH_SHORT).show();
             }
         });
