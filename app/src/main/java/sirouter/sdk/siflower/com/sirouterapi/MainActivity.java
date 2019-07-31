@@ -10,12 +10,9 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Switch;
 import android.widget.Toast;
-
 import com.google.gson.Gson;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import io.reactivex.SingleObserver;
 import io.reactivex.disposables.Disposable;
 import sirouter.sdk.siflower.com.locallibrary.siwifiApi.LocalApi;
@@ -46,6 +43,7 @@ import sirouter.sdk.siflower.com.locallibrary.siwifiApi.ret.GetDeviceRestrictRet
 import sirouter.sdk.siflower.com.locallibrary.siwifiApi.ret.GetFreqIntergrationRet;
 import sirouter.sdk.siflower.com.locallibrary.siwifiApi.ret.GetLeaseNetRet;
 import sirouter.sdk.siflower.com.locallibrary.siwifiApi.ret.GetWanTypeRet;
+import sirouter.sdk.siflower.com.locallibrary.siwifiApi.ret.RemoteSessionRet;
 import sirouter.sdk.siflower.com.locallibrary.siwifiApi.ret.SetCustomWiFiRet;
 import sirouter.sdk.siflower.com.locallibrary.siwifiApi.ret.SetDeviceDataUsageRet;
 import sirouter.sdk.siflower.com.locallibrary.siwifiApi.ret.SetDeviceRestrictRet;
@@ -62,38 +60,13 @@ import sirouter.sdk.siflower.com.remotelibrary.Listener.SiWiFiListListener;
 import sirouter.sdk.siflower.com.remotelibrary.SFClass.Routers;
 import sirouter.sdk.siflower.com.remotelibrary.SFUser;
 import sirouter.sdk.siflower.com.remotelibrary.SiWiFiManager;
+import sirouter.sdk.siflower.com.storagelibrary.FileListListener;
+import sirouter.sdk.siflower.com.storagelibrary.SFStorageException;
+import sirouter.sdk.siflower.com.storagelibrary.SessionConnectListener;
+import sirouter.sdk.siflower.com.storagelibrary.StorageManager;
+import sirouter.sdk.siflower.com.storagelibrary.jcifs.smb.SmbFile;
 
 public class MainActivity extends AppCompatActivity {
-
-    public boolean flagCondition() {
-        if (flag == 0) {
-            if (mUser == null && routers != null) {
-                Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
-                return false;
-            }
-            if (mUser != null && routers == null) {
-                Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
-                return false;
-            }
-            progressDialog.show();
-            return true;
-        } else if (flag == 1||flag == 2) {
-            if (mUser != null&& routers != null) {
-                Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
-                return false;
-            }
-            if (mUser == null&& routers != null) {
-                Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
-                return false;
-            }
-            if (mUser != null && routers == null) {
-                Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
-                return false;
-            }
-            return false;
-        }
-        return false;
-    }
 
     private EditText editText;
 
@@ -138,11 +111,26 @@ public class MainActivity extends AppCompatActivity {
     private Button setCustomWiFi;
 
 
+    private Button localGetFile;
+    private Button localRenameFile;
+    private Button localPasteFile;
+    private Button createSession;
+    private Button remoteGetFile;
+    private Button deleteSession;
+    private StorageManager storageManager;
+
     private static final String TAG = "mainActivity";
+
     private int flag;
+    private enum SessionStatus{
+        no_connect,connecting,connected
+    }
+
+    private SessionStatus sessionStatus;
+
     private String appKey = "c20ad4d76fe97759aa27a0c99bff6710";
     private String appSecret = "864850023f299568b353d21e55c6c892";
-    ProgressDialog progressDialog;
+    private ProgressDialog progressDialog;
 
 
 
@@ -156,6 +144,8 @@ public class MainActivity extends AppCompatActivity {
         progressDialog.setMessage("Loading...");
         mUser = SFUser.getCacheUser(this);
         mainActivity = this;
+        sessionStatus = SessionStatus.no_connect;
+        storageManager = new StorageManager("192.168.4.1");
 
         loginExtra = findViewById(R.id.loginExtra);
         editText = findViewById(R.id.editText);
@@ -189,6 +179,14 @@ public class MainActivity extends AppCompatActivity {
         setWiFi = findViewById(R.id.setWiFi);
         setWiFiAdvance = findViewById(R.id.setWiFiAdvance);
 
+        localGetFile = findViewById(R.id.local_get_file);
+        localPasteFile = findViewById(R.id.local_paste_file);
+        localRenameFile = findViewById(R.id.local_rename);
+
+        createSession = findViewById(R.id.create_session);
+        remoteGetFile  = findViewById(R.id.remote_get_file);
+        deleteSession = findViewById(R.id.delete_channel);
+
 
         if (mUser != null && !mUser.getLoginkey().equals("")) {
             SFUser.loginByKey(this, mUser.getLoginkey(), new SFObjectResponseListener<SFUser>() {
@@ -210,7 +208,6 @@ public class MainActivity extends AppCompatActivity {
 //                                Toast.makeText(MainActivity.this, "on connection success", Toast.LENGTH_SHORT).show();
                         }
 
-
                         @Override
                         public void onConnectionClose(int code, String reason) {
                             Log.e(TAG, "on connection close" + Thread.currentThread().getName());
@@ -231,8 +228,83 @@ public class MainActivity extends AppCompatActivity {
             });
         }
 
+        bind();
+        unbind();
+        getWiFi();
+        getWanType();
+        getDevice();
+        getWanType();
+        getFreqIntergration();
+        getLeaseNet();
+        getWiFiAdvance();
+        getCustomWiFiFace();
+        getDeviceRestrict();
+        getDeviceDataUsage();
+        getWDSRelIp();
+        getWDSInfo();
+        getWDSRelIp();
+        getRouters();
+        loginExtra();
+        getWDSScan();
+        setFreqIntergration();
+        setWiFi();
+        setCustomWifi();
+        setWiFiAdvance();
+        setDeviceDataUsage();
+        setDeviceRestrict();
+        setLeaseNet();
+        setAdminPwd();
+        setWanType();
+        getGateWayIp();
+        localGetFile();
+        localRenameFile();
+        localPasteFile();
+        createSession();
+        remoteGetFile();
+        deleteSession();
 
 
+
+
+
+
+
+
+
+
+    }
+
+    public boolean flagCondition() {
+        if (flag == 0) {
+            if (mUser == null) {
+                Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+            if (routers == null) {
+                Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+            progressDialog.show();
+            return true;
+        } else if (flag == 1||flag == 2) {
+            if (mUser != null&& routers != null) {
+                Toast.makeText(MainActivity.this, "连接失败", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+            if (mUser == null&& routers != null) {
+                Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+            if (mUser != null && routers == null) {
+                Toast.makeText(MainActivity.this, "未绑定路由器", Toast.LENGTH_SHORT).show();
+                return false;
+            }
+            return false;
+        }
+        return false;
+    }
+
+    private void bind(){
         bindSiRouter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -240,7 +312,6 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "用户未登录", Toast.LENGTH_SHORT).show();
                     return;
                 }
-
 
                 SiWiFiManager.getInstance().bindSiRouter(MainActivity.this, LocalApi.DEFAULT_APP_API_VERSION, mUser, new SingleObserver<BindRet>() {
                     @Override
@@ -276,14 +347,45 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
+    private void unbind(){
+        unbindSiRouter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!flagCondition()) {
+                    return;
+                }
+                SiWiFiManager.getInstance().unbindSiRouter(routers, mUser, new SingleObserver<UnbindRet>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
 
+                    }
+
+                    @Override
+                    public void onSuccess(UnbindRet unbindRet) {
+                        progressDialog.dismiss();
+                        Toast.makeText(mainActivity, new Gson().toJson(unbindRet), Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        progressDialog.dismiss();
+                        Toast.makeText(mainActivity, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+    }
+
+    private void getWiFi(){
         getWifiObserve.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                if(flagCondition()==false)
+                if(!flagCondition()) {
                     return;
+                }
                 SiWiFiManager.getInstance().getWifiObserve(routers, mUser, new SingleObserver<List<WiFiInfo>>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -306,8 +408,9 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
-
+    private void loginExtra(){
         loginExtra.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -351,13 +454,15 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
-
+    private void getCustomWiFiFace(){
         getCustomWiFiFace.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
+                if(!flagCondition()) {
                     return;
+                }
                 SiWiFiManager.getInstance().getCustomWiFiIFace(routers, mUser, new SingleObserver<GetCustomWiFiRet>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -379,13 +484,15 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
-
+    private void getWDSInfo(){
         getWDSInfo.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
+                if(!flagCondition()) {
                     return;
+                }
                 SiWiFiManager.getInstance().getWDSInfo(routers, mUser, new SingleObserver<List<WDSInfo>>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -408,14 +515,17 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
-
+    private void getDevice(){
         getSiRouterDeviceDetail.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
+                if(!flagCondition()){
                     return;
-                SiWiFiManager.getInstance().getSiRouterDeviceDetail(routers, mUser, SiWiFiManager.a.a, new SingleObserver<List<Device>>() {
+                }
+
+                SiWiFiManager.getInstance().getSiRouterDeviceDetail(routers, mUser, new SingleObserver<List<Device>>() {
                     @Override
                     public void onSubscribe(Disposable d) {
 
@@ -437,13 +547,15 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
-
+    private void getDeviceDataUsage(){
         getDeviceDataUsage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
+                if(!flagCondition()) {
                     return;
+                }
                 GetDeviceDataUsageParam param = new GetDeviceDataUsageParam("V10");
                 param.setMac("A0_86_C6_9D_28_7D");
                 SiWiFiManager.getInstance().getDeviceDataUsage(routers, mUser, param, new SingleObserver<GetDeviceDataUsageRet>() {
@@ -467,13 +579,15 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
-
+    private void getLeaseNet(){
         getLeaseNet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
+                if(!flagCondition()) {
                     return;
+                }
                 SiWiFiManager.getInstance().getLeaseNet(routers, mUser, new SingleObserver<GetLeaseNetRet>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -495,13 +609,16 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
-
+    private void getWDSScan(){
         getWDSScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
+                if(!flagCondition()){
                     return;
+                }
+
                 String band = "2.4G";
                 SiWiFiManager.getInstance().getWDSScan(routers, mUser, band, new SingleObserver<List<WDSScanInfo>>() {
                     @Override
@@ -524,13 +641,15 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
-
+    private void getWDSRelIp(){
         getWDSRelIp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
+                if(!flagCondition()) {
                     return;
+                }
                 String band = "2.4G";
                 SiWiFiManager.getInstance().getWDSRelIp(routers, mUser, band, new SingleObserver<String>() {
                     @Override
@@ -553,13 +672,15 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
-
+    private void getDeviceRestrict(){
         getDeviceRestrict.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
+                if(!flagCondition()){
                     return;
+                }
                 GetDeviceRestrictParam param = new GetDeviceRestrictParam("V10");
                 param.setMac("A0_86_C6_9D_28_7D");
                 SiWiFiManager.getInstance().getDeviceRestrict(routers, mUser, param, new SingleObserver<GetDeviceRestrictRet>() {
@@ -583,13 +704,40 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
+    private void getRouters(){
+        getRouters.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!flagCondition()) {
+                    return;
+                }
+                SiWiFiManager.getInstance().getRouters(mUser, new SiWiFiListListener<Routers>() {
+                    @Override
+                    public void onSuccess(List<Routers> list) {
+                        progressDialog.dismiss();
+                        Log.e(TAG, "  getRouters" + new Gson().toJson(list));
+                        Toast.makeText(MainActivity.this, new Gson().toJson(list), Toast.LENGTH_SHORT).show();
+                    }
 
+                    @Override
+                    public void onError(int i, String s) {
+                        progressDialog.dismiss();
+                        Log.e(TAG, " getRouters" + s);
+                    }
+                });
+            }
+        });
+    }
+
+    private void getFreqIntergration(){
         getFreqIntergration.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
+                if(!flagCondition()) {
                     return;
+                }
                 GetFreqIntergrationParam param = new GetFreqIntergrationParam("V17");
 
                 SiWiFiManager.getInstance().getFreqIntergration(routers, mUser, param, new SingleObserver<GetFreqIntergrationRet>() {
@@ -613,36 +761,15 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
-
-        getRouters.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(flagCondition()==false)
-                    return;
-                SiWiFiManager.getInstance().getRouters(mUser, new SiWiFiListListener<Routers>() {
-                    @Override
-                    public void onSuccess(List<Routers> list) {
-                        progressDialog.dismiss();
-                        Log.e(TAG, "  getRouters" + new Gson().toJson(list));
-                        Toast.makeText(MainActivity.this, new Gson().toJson(list), Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onError(int i, String s) {
-                        progressDialog.dismiss();
-                        Log.e(TAG, " getRouters" + s);
-                    }
-                });
-            }
-        });
-
-
+    private void getWanType() {
         getWanTypeObserve.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
+                if (!flagCondition()) {
                     return;
+                }
                 SiWiFiManager.getInstance().getWanTypeObserve(routers, mUser, new SingleObserver<GetWanTypeRet>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -664,13 +791,15 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
-
+    private void getWiFiAdvance(){
         getWiFiAdvanceObserve.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
+                if(!flagCondition()) {
                     return;
+                }
                 SiWiFiManager.getInstance().getWifiAdvanceObserve(routers, mUser, new SingleObserver<List<WiFiAdvanceInfo>>() {
                     @Override
                     public void onSubscribe(Disposable d) {
@@ -693,8 +822,9 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
-
+    private void getGateWayIp(){
         getGatewayIp.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -710,14 +840,15 @@ public class MainActivity extends AppCompatActivity {
                 Toast.makeText(MainActivity.this, new Gson().toJson((SiWiFiManager.getInstance().getGatewayIp(mainActivity))), Toast.LENGTH_SHORT).show();
             }
         });
+    }
 
-
-
+    private void setFreqIntergration(){
         setFreqIntergration.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
+                if(!flagCondition()) {
                     return;
+                }
                 SetFreqIntergrationParam param = new SetFreqIntergrationParam("V17");
                 if (setFreqIntergration_switch.isChecked()) {
                     param.setEnable(1);
@@ -744,13 +875,15 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
-
+    private void setDeviceDataUsage() {
         setDeviceDataUsage.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
+                if (!flagCondition()) {
                     return;
+                }
                 SetDeviceDataUsageParam param = new SetDeviceDataUsageParam("V14");
                 param.setMac("A0_86_C6_9D_28_7D");
                 List<DataUsage> list = new ArrayList<DataUsage>();
@@ -782,13 +915,15 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
-
+    private void setLeaseNet(){
         setLeaseNet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
+                if(!flagCondition()) {
                     return;
+                }
                 SetLeaseNetParam param = new SetLeaseNetParam("V14");
                 param.setEnable(true);
                 param.setSsid("liuxiaopeng-5G");
@@ -813,13 +948,15 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
-
+    private void setWanType(){
         setWanType.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
+                if(!flagCondition()) {
                     return;
+                }
                 SetWanTypeParam param = new SetWanTypeParam("V14");
                 param.setType(0);
                 SiWiFiManager.getInstance().setWanType(routers, mUser, param, new SingleObserver<SetWanTypeRet>() {
@@ -842,14 +979,16 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
-
+    private void setAdminPwd(){
         setAdminPassword.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
+                if(!flagCondition()) {
                     return;
+                }
                 SetPasswordParam param = new SetPasswordParam("V14");
                 param.setOldpwd(setOldpwd.getText().toString());
                 param.setNewpwd(setNewpwd.getText().toString());
@@ -873,46 +1012,15 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
-
-        setDeviceRestrict.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if(flagCondition()==false)
-                    return;
-                SetDeviceRestrictParam param = new SetDeviceRestrictParam("V14");
-                param.setMac("A0_86_C6_9D_28_7D");
-                param.setSocial(0);
-                param.setVideo(0);
-                param.setGame(1);
-                param.setRestrictenable(0);
-                SiWiFiManager.getInstance().setDeviceRestrict(routers, mUser, param).subscribe(new SingleObserver<SetDeviceRestrictRet>() {
-                    @Override
-                    public void onSubscribe(Disposable d) {
-
-                    }
-
-                    @Override
-                    public void onSuccess(SetDeviceRestrictRet setDeviceRestrictRet) {
-                        progressDialog.dismiss();
-                        Toast.makeText(mainActivity, new Gson().toJson(setDeviceRestrictRet), Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-                        progressDialog.dismiss();
-                        Toast.makeText(mainActivity, e.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-            }
-        });
-
-
+    private void setCustomWifi(){
         setCustomWiFi.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
+                if(!flagCondition()) {
                     return;
+                }
                 SetCustomWiFiParam param = new SetCustomWiFiParam("V14");
                 List<IFace> list = new ArrayList<IFace>();
                 IFace iFace = new IFace();
@@ -950,13 +1058,50 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
+    private void setDeviceRestrict(){
+        setDeviceRestrict.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!flagCondition()) {
+                    return;
+                }
+                SetDeviceRestrictParam param = new SetDeviceRestrictParam("V14");
+                param.setMac("A0_86_C6_9D_28_7D");
+                param.setSocial(0);
+                param.setVideo(0);
+                param.setGame(1);
+                param.setRestrictenable(0);
+                SiWiFiManager.getInstance().setDeviceRestrict(routers, mUser, param).subscribe(new SingleObserver<SetDeviceRestrictRet>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
 
+                    }
+
+                    @Override
+                    public void onSuccess(SetDeviceRestrictRet setDeviceRestrictRet) {
+                        progressDialog.dismiss();
+                        Toast.makeText(mainActivity, new Gson().toJson(setDeviceRestrictRet), Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        progressDialog.dismiss();
+                        Toast.makeText(mainActivity, e.getMessage(), Toast.LENGTH_SHORT).show();
+                    }
+                });
+            }
+        });
+    }
+
+    private void setWiFi() {
         setWiFi.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
+                if (!flagCondition()) {
                     return;
+                }
                 List<WifiParam> list = new ArrayList<WifiParam>();
                 WifiParam wifiParam = new WifiParam();
                 wifiParam.enable = 1;
@@ -987,13 +1132,15 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
-
+    private void setWiFiAdvance(){
         setWiFiAdvance.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
+                if(!flagCondition()) {
                     return;
+                }
                 List<SetWiFiAdvanceInfo> list = new ArrayList<SetWiFiAdvanceInfo>();
 
                 SetWiFiAdvanceInfo param24 = new SetWiFiAdvanceInfo();
@@ -1037,34 +1184,155 @@ public class MainActivity extends AppCompatActivity {
                 });
             }
         });
+    }
 
-
-        unbindSiRouter.setOnClickListener(new View.OnClickListener() {
+    private void localGetFile(){
+        localGetFile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(flagCondition()==false)
-                    return;
-                SiWiFiManager.getInstance().unbindSiRouter(routers, mUser, new SingleObserver<UnbindRet>() {
+                storageManager.getSMBFileList(StorageManager.baseUri, new FileListListener<SmbFile>() {
+                    @Override
+                    public void onGetFile(List<SmbFile> sfSmbFile) {
+                        Log.e(TAG," sfs file size "+sfSmbFile.size());
+                    }
+
+                    @Override
+                    public void onError(SFStorageException e) {
+                        Log.e(TAG," sfs file size error "+e.getMessage());
+                    }
+                });
+            }
+        });
+    }
+
+    private void localRenameFile(){
+        localRenameFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                storageManager.renameSmbFile(StorageManager.baseUri, "weeklyreport.xls", "weeklyreport111.xls", new SingleObserver<String>() {
                     @Override
                     public void onSubscribe(Disposable d) {
 
                     }
 
                     @Override
-                    public void onSuccess(UnbindRet unbindRet) {
-                        progressDialog.dismiss();
-                        Toast.makeText(mainActivity, new Gson().toJson(unbindRet), Toast.LENGTH_SHORT).show();
+                    public void onSuccess(String s) {
+
                     }
 
                     @Override
                     public void onError(Throwable e) {
-                        progressDialog.dismiss();
-                        Toast.makeText(mainActivity, e.getMessage(), Toast.LENGTH_SHORT).show();
+
                     }
                 });
             }
         });
     }
+
+    private void localPasteFile(){
+        localPasteFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                List<String> names = new ArrayList<>();
+                names.add("weeklyreport.xls");
+                storageManager.copySmbFile(names, StorageManager.baseUri, StorageManager.baseUri + "newfolder/", new FileListListener<SmbFile>() {
+                    @Override
+                    public void onGetFile(List<SmbFile> sfSmbFile) {
+                        Log.e(TAG,"success ");
+                    }
+
+                    @Override
+                    public void onError(SFStorageException e) {
+                        Log.e(TAG,"copy error "+e.getMessage());
+                    }
+                });
+            }
+        });
+    }
+
+    private void createSession(){
+        createSession.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!flagCondition()){
+                    return;
+                }
+
+                SiWiFiManager.getInstance().getRemoteSession(routers, mUser, new SingleObserver<RemoteSessionRet>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+
+                    }
+
+                    @Override
+                    public void onSuccess(RemoteSessionRet remoteSessionRet) {
+                        progressDialog.dismiss();
+                        if (remoteSessionRet.getCode() == 0) {
+                            storageManager.setSessionListener(new SessionConnectListener() {
+                                @Override
+                                public void onConnecting() {
+                                    Log.e(TAG,"connecting");
+                                    sessionStatus = SessionStatus.connecting;
+                                }
+
+                                @Override
+                                public void onConnected() {
+                                    Log.e(TAG,"connected");
+                                    sessionStatus = SessionStatus.connected;
+                                }
+
+                                @Override
+                                public void onDisconnected() {
+                                    Log.e(TAG,"disconnected");
+                                    sessionStatus = SessionStatus.no_connect;
+                                }
+                            });
+                            storageManager.createNewChannel(remoteSessionRet.getUrl(),remoteSessionRet.getSession());
+                        }
+                    }
+
+                    @Override
+                    public void onError(Throwable e) {
+                        progressDialog.dismiss();
+                        Log.e(TAG,"get remote session error "+e.getMessage());
+                    }
+                });
+            }
+        });
+    }
+
+    private void remoteGetFile(){
+        remoteGetFile.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (sessionStatus == SessionStatus.connected) {
+                    storageManager.getSMBFileListRemote(StorageManager.baseUri, new FileListListener<SmbFile>() {
+                        @Override
+                        public void onGetFile(List<SmbFile> sfSmbFile) {
+                            Log.e(TAG, " sfs file size " + sfSmbFile.size());
+                        }
+
+                        @Override
+                        public void onError(SFStorageException e) {
+                            Log.e(TAG, " sfs file size error " + e.getMessage());
+                        }
+                    });
+                }else {
+                    Toast.makeText(MainActivity.this,"session未连接",Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void deleteSession(){
+        deleteSession.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                storageManager.deleteChannel();
+            }
+        });
+    }
+
 }
 
 

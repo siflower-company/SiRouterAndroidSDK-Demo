@@ -290,6 +290,60 @@
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 android:layout_gravity="center_horizontal"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="局域网获取文件"
+                android:id="@+id/local_get_file"
+                app:layout_constraintTop_toBottomOf="@+id/bindSiRouter"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                android:layout_gravity="center_horizontal"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="局域网粘贴文件"
+                android:id="@+id/local_paste_file"
+                app:layout_constraintTop_toBottomOf="@+id/bindSiRouter"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                android:layout_gravity="center_horizontal"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="局域网重命名"
+                android:id="@+id/local_rename"
+                app:layout_constraintTop_toBottomOf="@+id/bindSiRouter"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                android:layout_gravity="center_horizontal"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="建立session"
+                android:id="@+id/create_session"
+                app:layout_constraintTop_toBottomOf="@+id/bindSiRouter"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                android:layout_gravity="center_horizontal"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="远程获取文件"
+                android:id="@+id/remote_get_file"
+                app:layout_constraintTop_toBottomOf="@+id/bindSiRouter"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                android:layout_gravity="center_horizontal"/>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="销毁session"
+                android:id="@+id/delete_channel"
+                app:layout_constraintTop_toBottomOf="@+id/bindSiRouter"
+                app:layout_constraintLeft_toLeftOf="parent"
+                app:layout_constraintRight_toRightOf="parent"
+                android:layout_gravity="center_horizontal"/>
 
         </LinearLayout>
     </ScrollView>

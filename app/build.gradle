@@ -37,8 +37,9 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-    implementation(name:'remotelibrary-release', ext:'aar')
-    implementation(name:'locallibrary-release', ext:'aar')
+    implementation(name:'remotelibrary_v0_2', ext:'aar')
+    implementation(name:'locallibrary_v0_2', ext:'aar')
+    implementation(name:'storagelibrary_v0_1_1', ext:'aar')
     implementation "io.reactivex.rxjava2:rxjava:2.2.4"
     implementation 'io.reactivex.rxjava2:rxandroid:2.1.0'
     implementation 'com.google.code.gson:gson:2.8.2'
@@ -49,4 +50,5 @@ dependencies {
     implementation'com.squareup.retrofit2:retrofit:2.5.0'
     implementation'com.squareup.retrofit2:converter-gson:2.5.0'
     implementation'com.squareup.retrofit2:adapter-rxjava2:2.5.0'
+    implementation 'commons-io:commons-io:2.5'
 }
